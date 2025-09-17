@@ -1,24 +1,30 @@
-#include <U8g2lib.h>
-#include <SoftwareSerial.h>
-#include <DFRobotDFPlayerMini.h>
+//librariez
+#include <U8g2lib.h> //lcd
+#include <SoftwareSerial.h> //well duh
+#include <DFRobotDFPlayerMini.h> //mp3
 
+//df mp3 player thing 
 #define PIN_MP3_RX 2
 #define PIN_MP3_TX 3
 
+//bpm dial
 #define PIN_CLK 4
 #define PIN_DT  5
 #define PIN_SW  6
 
+//lcd
 #define LCD_BACKLIGHT 9
 
+//ok i give up on commenting on everything
 SoftwareSerial mp3Serial(PIN_MP3_RX, PIN_MP3_TX);
 DFRobotDFPlayerMini player;
 
 U8G2_ST7920_128X64_F_SW_SPI u8g2(
-  U8G2_R0, /* clock=*/ 13, /* data=*/ 11, /* cs=*/ 10, /* reset=*/ U8X8_PIN_NONE
-);
+  U8G2_R0, /* clock=*/ 13, /* data=*/ 11, /* cs=*/ 10, /* reset=*/ 8
+); // i dont actually use 8 tho it's unwired
 
-int vol = 20;
+int vol = 20; //i dont use this yet though
+int bpm = 60;
 int lastCLK = HIGH;
 bool muted = false;
 
@@ -26,20 +32,28 @@ void updateLCD() {
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_ncenB08_tr);
 
-  if (muted) {
-    u8g2.drawStr(0, 12, "Muted");
-  } else {
+  {
     char buf[20];
-    sprintf(buf, "Volume: %d", vol);
+    sprintf(buf, "BPM:", bpm);
     u8g2.drawStr(0, 12, buf);
   }
+  
+//  if (muted)
+
+  
+  //  u8g2.drawStr(0, 12, "Muted");
+    //else {
+    //char buf[20];
+    //sprintf(buf, "BPM: %d", bpm);
+    //u8g2.drawStr(0, 12, buf);
+  //}
 
   u8g2.sendBuffer();
 }
 
 void setup() {
   pinMode(LCD_BACKLIGHT, OUTPUT);
-  analogWrite(LCD_BACKLIGHT, 128);
+  analogWrite(LCD_BACKLIGHT, 70);
 
   Serial.begin(9600);
   mp3Serial.begin(9600);
@@ -51,8 +65,8 @@ void setup() {
   }
   Serial.println(F("DFPlayer initialized"));
 
-  player.volume(vol);
-  Serial.print(F("Volume: ")); Serial.println(vol);
+ // player.volume(vol);
+ // Serial.print(F("Volume: ")); Serial.println(vol);
 
   pinMode(PIN_CLK, INPUT_PULLUP);
   pinMode(PIN_DT, INPUT_PULLUP);
@@ -71,16 +85,18 @@ void loop() {
 
   if (clkState != lastCLK) {
     if (dtState != clkState) {
-      vol++;
-      if (vol > 30) vol = 30;
+      bpm++;
+      if (bpm > 180) bpm = 180;
     } else {
-      vol--;
-      if (vol < 0) vol = 0;
+      bpm--;
+      if (bpm < 60) bpm = 60;
     }
+    
     if (!muted) player.volume(vol);
-    Serial.print(F("Volume: ")); Serial.println(vol);
+    Serial.print(F("BPM: ")); Serial.println(bpm);
     updateLCD();
   }
+  
   lastCLK = clkState;
 
   if (digitalRead(PIN_SW) == LOW) {
@@ -101,4 +117,12 @@ void loop() {
       }
     }
   }
+
+unsigned long lastBeat = 0;
+unsigned long interval = 60000 / bpm;
+if (millis() - lastBeat >= interval) {
+    lastBeat = millis();
+    player.play(1);
+}
+
 }
