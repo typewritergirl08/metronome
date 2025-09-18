@@ -4,8 +4,10 @@
 #include <DFRobotDFPlayerMini.h> //mp3
 
 //df mp3 player thing pins
-#define PIN_MP3_RX 2
-#define PIN_MP3_TX 3
+//#define PIN_MP3_RX 2
+//#define PIN_MP3_TX 3
+const short rx = 2
+const short tx = 3
 
 //bpm dial pins
 #define PIN_CLK 4
@@ -16,8 +18,10 @@
 #define LCD_BACKLIGHT 9
 
 //ok i give up on commenting on everything
-SoftwareSerial mp3Serial(PIN_MP3_RX, PIN_MP3_TX);
-DFRobotDFPlayerMini player;
+//SoftwareSerial mp3Serial(PIN_MP3_RX, PIN_MP3_TX);
+//DFRobotDFPlayerMini player;
+
+MD_YX5300 mp3(rx, tx);
 
 U8G2_ST7920_128X64_F_SW_SPI u8g2(
   U8G2_R0, /* clock=*/ 13, /* data=*/ 11, /* cs=*/ 10, /* reset=*/ 8
@@ -48,14 +52,14 @@ void setup() {
   analogWrite(LCD_BACKLIGHT, 70);
 
   Serial.begin(9600);
-  mp3Serial.begin(9600);
+  mp3.begin();
 
-  Serial.println(F("Initializing DFPlayer..."));
-  if (!player.begin(mp3Serial, true, false)) {
-    Serial.println(F("DFPlayer init failed!"));
-    while (1);
-  }
-  Serial.println(F("DFPlayer initialized")); //idk this was example code
+  //Serial.println(F("Initializing DFPlayer..."));
+  //if (!player.begin(mp3Serial, true, false)) {
+   // Serial.println(F("DFPlayer init failed!"));
+    //while (1);
+  //}
+  //Serial.println(F("DFPlayer initialized")); //idk this was example code
 
   pinMode(PIN_CLK, INPUT_PULLUP);
   pinMode(PIN_DT, INPUT_PULLUP);
@@ -69,6 +73,8 @@ void setup() {
 void loop() { //is there a way to have a "loop2"? ie something that runs parallel to loop, and also keeps iteratively calling itself
 
   //put this in its own function
+
+  
   int clkState = digitalRead(PIN_CLK);
   int dtState  = digitalRead(PIN_DT);
 
@@ -93,7 +99,7 @@ void loop() { //is there a way to have a "loop2"? ie something that runs paralle
   //this will need to run independly of the firstloop
   if (millis() - lastBeat >= interval) {
     lastBeat = millis();
-    player.play(1); //i bet the problem is here
+    mp3.playTrack(1); 
   }
   
 }
