@@ -70,10 +70,7 @@ void setup() {
 
 }
 
-void loop() { //is there a way to have a "loop2"? ie something that runs parallel to loop, and also keeps iteratively calling itself
-
-  //put this in its own function
-
+void 
   
   int clkState = digitalRead(PIN_CLK);
   int dtState  = digitalRead(PIN_DT);
